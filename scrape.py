@@ -23,18 +23,20 @@ class Scrape():
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
         driver = webdriver.Chrome(executable_path="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", service=Service(ChromeDriverManager().install()), options=options)
-        driver.get('https://www.1000kvartir.uz/mr/rent?page=9')
-
-        offers = driver.find_elements_by_css_selector('a.desc-place__more-info')
+        driver.get('https://www.1000kvartir.uz/mr/rent?page=1')
 
         while True:
             try:
                 next_page = driver.find_element_by_link_text('»')
+                offers = driver.find_elements_by_css_selector('a.desc-place__more-info')
                 data = get_data(driver, offers)
                 next_page.click()
+                sleep(randint(1, 5))
                 continue
             except: 
+                sleep(randint(1, 5))
                 last_page = driver.find_element_by_css_selector('li.next.disabled') 
+                offers = driver.find_elements_by_css_selector('a.desc-place__more-info')
                 data = get_data(driver, offers)
                 break
           
@@ -63,6 +65,17 @@ def get_data(driver, offers):
         all_images = {'images': list_of_images}
         main_image = driver.find_element_by_id('main-image').get_attribute('src')
         small_images = driver.find_elements_by_class_name('small-image')
+
+        additional_info_table = driver.find_elements_by_css_selector('ul.additional-information__list')
+        facilities1 = additional_info_table[0].find_elements_by_tag_name('li')
+        facilities2 = additional_info_table[1].find_elements_by_tag_name('li')
+
+
+        facility_list = []
+        for facility in facilities1:
+            facility_list.append(facility.text)
+        for facility in facilities2:
+            facility_list.append(facility.text)    
 
         price = driver.find_element_by_class_name('price').text
         price_in_usd = price.splitlines()[0]
@@ -94,6 +107,7 @@ def get_data(driver, offers):
                 'date&time posted': date,
                 'district': district,
                 'description': description,
+                'additional facilities': facility_list,
                 'images': list_of_images
             }
         }    
