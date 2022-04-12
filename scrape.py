@@ -51,6 +51,7 @@ def get_data(driver, offers):
         driver.switch_to.window(chld)
 
         link_of_offer = driver.current_url
+        h3s = driver.find_elements_by_tag_name('h3')
         number_of_rooms = driver.find_elements_by_xpath("//*[contains(text(), 'Кол-во комнат')]")[1].text
         number_of_rooms = int(re.search(r'\d+', number_of_rooms).group())
         level_and_number_of_levels = driver.find_elements_by_xpath("//*[contains(text(), 'Этаж/Кол-во этажей')]")[0].text
@@ -82,6 +83,7 @@ def get_data(driver, offers):
         price_in_sum = price.splitlines()[1]
         date = driver.find_element_by_tag_name('p').text
         district = driver.find_element_by_css_selector('div.placeholder').text
+        address = h3s[1].text + ', ' + district
         description =  driver.find_element_by_css_selector('div.detailed-description').text
 
         if description == 'Описание:\nОписание отсутствует':
@@ -98,6 +100,7 @@ def get_data(driver, offers):
         overall_data = {
             'src': link_of_offer,
             'main_info': {
+                'address': address,
                 'area in m^2': area,
                 'number of rooms': number_of_rooms,
                 'level': level,
@@ -105,7 +108,6 @@ def get_data(driver, offers):
                 'type of apartment': type_of_apartment,
                 'preffered lenght of stay': length_of_stay,
                 'date&time posted': date,
-                'district': district,
                 'description': description,
                 'additional facilities': facility_list,
                 'images': list_of_images
