@@ -12,6 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.common.action_chains import ActionChains
 from webdriver_manager.chrome import ChromeDriverManager
 
 from dotenv import load_dotenv
@@ -26,6 +27,7 @@ class Scrape():
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
+        options.add_argument("window-size=1200x600")
         driver = webdriver.Chrome(os.environ['CHROMEDRIVER_PATH'], service=Service(ChromeDriverManager().install()), options=options)
         driver.get('https://www.1000kvartir.uz/mr/rent?page=1')
 
@@ -34,7 +36,7 @@ class Scrape():
                 next_page = driver.find_element_by_link_text('»')
                 offers = driver.find_elements_by_css_selector('a.desc-place__more-info')
                 data = get_data(driver, offers)
-                next_page.click()
+                click_button(driver, next_page)
                 sleep(randint(1, 5))
                 continue
             except: 
@@ -42,8 +44,7 @@ class Scrape():
                 last_page = driver.find_element_by_css_selector('li.next.disabled') 
                 offers = driver.find_elements_by_css_selector('a.desc-place__more-info')
                 data = get_data(driver, offers)
-                break
-          
+                break 
         driver.quit() 
 
 
@@ -53,9 +54,14 @@ def close_window(driver, parent):
     sleep(randint(1, 5))
 
 
+def click_button(driver, button):
+    driver.implicitly_wait(10)
+    ActionChains(driver).move_to_element(button).click(button).perform()
+
+
 def get_data(driver, offers):
     for offer in offers:
-        offer.click()
+        click_button(driver, offer)
         sleep(randint(1, 5))
         parent = driver.window_handles[0]
         chld = driver.window_handles[1]
@@ -124,11 +130,13 @@ def get_data(driver, offers):
                 'images': list_of_images
             }
         }    
+        
         if collection.count_documents({'src': link_of_offer}) == 0:
             collection.insert_one(overall_data)
             close_window(driver, parent)  
         else:
             close_window(driver, parent)
+    
 
 
 data = Scrape()
