@@ -1,3 +1,4 @@
+import os
 import re
 import json
 
@@ -11,8 +12,11 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
-
 from webdriver_manager.chrome import ChromeDriverManager
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Scrape():
@@ -22,7 +26,7 @@ class Scrape():
         options.add_argument('--headless')
         options.add_argument('--no-sandbox')
         options.add_argument('--disable-dev-shm-usage')
-        driver = webdriver.Chrome(executable_path="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe", service=Service(ChromeDriverManager().install()), options=options)
+        driver = webdriver.Chrome(os.environ['CHROMEDRIVER_PATH'], service=Service(ChromeDriverManager().install()), options=options)
         driver.get('https://www.1000kvartir.uz/mr/rent?page=1')
 
         while True:
@@ -41,6 +45,13 @@ class Scrape():
                 break
           
         driver.quit() 
+
+
+def close_window(driver, parent):
+    driver.close()
+    driver.switch_to.window(parent)
+    sleep(randint(1, 5))
+
 
 def get_data(driver, offers):
     for offer in offers:
@@ -113,13 +124,12 @@ def get_data(driver, offers):
                 'images': list_of_images
             }
         }    
+        if collection.count_documents({'src': link_of_offer}) == 0:
+            collection.insert_one(overall_data)
+            close_window(driver, parent)  
+        else:
+            close_window(driver, parent)
 
-        collection.insert_one(overall_data)
-        
-        driver.close()
-        driver.switch_to.window(parent)
-        sleep(randint(1, 5)) 
-            
 
 data = Scrape()
 
