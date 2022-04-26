@@ -55,13 +55,16 @@ def close_window(driver, parent):
 
 
 def click_button(driver, button):
-    driver.implicitly_wait(10)
-    ActionChains(driver).move_to_element(button).click(button).perform()
+    try: 
+        driver.implicitly_wait(10)
+        ActionChains(driver).move_to_element(button).click(button).perform()
+    except:
+        click_button(driver, button)    
 
 
 def get_data(driver, offers):
     for offer in offers:
-        click_button(driver, offer)
+        click_button(driver, offer)    
         sleep(randint(1, 5))
         parent = driver.window_handles[0]
         chld = driver.window_handles[1]
